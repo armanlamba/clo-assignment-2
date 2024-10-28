@@ -1,27 +1,29 @@
 name: Deploy to ECR
 on: 
   push:
-    branches: [ "main" ]
+    branches: [ "dev2" ]
 
 jobs:
   
   build:
+    
     name: Build Image
     runs-on: ubuntu-latest
 
+   
     steps:
+
     - name: Check out code
       uses: actions/checkout@v4
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2  # Upgraded to v2 to support Node.js 20
-      with:
-        region: us-east-1  # Ensure this matches your ECR region
+      uses: aws-actions/amazon-ecr-login@v1
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+        AWS_REGION: us-east-1
 
     - name: Build MySQL Docker Image
       run: |
@@ -30,6 +32,7 @@ jobs:
     - name: Run MySQL Container
       id: run-mysql
       run: |
+        # Start the MySQL container
         docker run -d --name mysql-container -e MYSQL_ROOT_PASSWORD=pw my_db
         echo "Waiting for MySQL to initialize..."
         sleep 30  # Adjust if necessary for MySQL to be ready
