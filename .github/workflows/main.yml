@@ -50,8 +50,8 @@ jobs:
     - name: Tag and Push Images to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: assignment1-dev-ecr
-        IMAGE_TAG: v0.1
+        ECR_REPOSITORY: assignment2-dev-ecr
+        IMAGE_TAG: latest
       run: |
         # Tag and push MySQL image to ECR
         docker tag my_db $ECR_REGISTRY/$ECR_REPOSITORY:my_db
