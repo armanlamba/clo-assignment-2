@@ -7,6 +7,6 @@ metadata:
 spec:
   containers:
     - name: web-app
-      image: <ECR_URI>:<tag>
+      image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:latest
       ports:
         - containerPort: 80
