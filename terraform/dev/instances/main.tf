@@ -68,7 +68,26 @@ resource "aws_instance" "my_amazon" {
       "Name" = "${local.name_prefix}-Amazon-Linux"
     }
   )
-}
+ # User data script to install Docker, kubectl, and kind
+  user_data = <<-EOF
+    #!/bin/bash
+    sudo yum update -y
+    sudo amazon-linux-extras install docker -y
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    sudo usermod -aG docker ec2-user
+
+    # Install kind
+    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+    chmod +x ./kind
+    sudo mv ./kind /usr/local/bin/
+
+    # Install kubectl
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
+  EOF
+  }
 
 
 # Adding SSH key to Amazon EC2
@@ -99,6 +118,14 @@ resource "aws_security_group" "my_sg" {
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+  }
+  
+  ingress {
+  description = "NodePort for K8s app access"
+  from_port   = 30000
+  to_port     = 32767  # Range for Kubernetes NodePort services
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -156,87 +183,87 @@ resource "aws_ecr_repository" "my_ecr_repo" {
   )
 }
 
-# Security Group for ALB
-resource "aws_security_group" "alb_sg" {
-  name        = "${local.name_prefix}-alb-sg"
-  description = "Allow traffic to the Application Load Balancer"
-  vpc_id      = data.aws_vpc.default.id # Ensure you have a VPC defined
+# # Security Group for ALB
+# resource "aws_security_group" "alb_sg" {
+#   name        = "${local.name_prefix}-alb-sg"
+#   description = "Allow traffic to the Application Load Balancer"
+#   vpc_id      = data.aws_vpc.default.id # Ensure you have a VPC defined
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Allow HTTP traffic from anywhere
-  }
+#   ingress {
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"] # Allow HTTP traffic from anywhere
+#   }
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Allow HTTPS traffic from anywhere
-  }
+#   ingress {
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"] # Allow HTTPS traffic from anywhere
+#   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # Allow all outbound traffic
-  }
+#   egress {
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"] # Allow all outbound traffic
+#   }
 
-  tags = merge(local.default_tags,
-    {
-      "Name" = "${local.name_prefix}-alb-sg" # Tag for identification
-    }
-  )
-}
+#   tags = merge(local.default_tags,
+#     {
+#       "Name" = "${local.name_prefix}-alb-sg" # Tag for identification
+#     }
+#   )
+# }
 
-# Create the Application Load Balancer
-resource "aws_lb" "my_alb" {
-  name               = "${local.name_prefix}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id]         # Use the ALB security group
-  subnets            = data.aws_subnet.existing_subnets[*].id # Associate with the existing subnets
+# # Create the Application Load Balancer
+# resource "aws_lb" "my_alb" {
+#   name               = "${local.name_prefix}-alb"
+#   internal           = false
+#   load_balancer_type = "application"
+#   security_groups    = [aws_security_group.alb_sg.id]         # Use the ALB security group
+#   subnets            = data.aws_subnet.existing_subnets[*].id # Associate with the existing subnets
 
-  enable_deletion_protection = false
+#   enable_deletion_protection = false
 
-  tags = merge(local.default_tags,
-    {
-      "Name" = "${local.name_prefix}-alb" # Tag for identification
-    }
-  )
-}
+#   tags = merge(local.default_tags,
+#     {
+#       "Name" = "${local.name_prefix}-alb" # Tag for identification
+#     }
+#   )
+# }
 
-# Create a Target Group for your ALB
-resource "aws_lb_target_group" "my_target_group" {
-  name     = "${local.name_prefix}-tg"
-  port     = 80 # Change this if your application runs on a different port
-  protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id # Ensure you have a VPC defined
+# # Create a Target Group for your ALB
+# resource "aws_lb_target_group" "my_target_group" {
+#   name     = "${local.name_prefix}-tg"
+#   port     = 80 # Change this if your application runs on a different port
+#   protocol = "HTTP"
+#   vpc_id   = data.aws_vpc.default.id # Ensure you have a VPC defined
 
-  health_check {
-    path                = "/health" # Change this to your application's health check path
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
+#   health_check {
+#     path                = "/health" # Change this to your application's health check path
+#     interval            = 30
+#     timeout             = 5
+#     healthy_threshold   = 2
+#     unhealthy_threshold = 2
+#   }
 
-  tags = merge(local.default_tags,
-    {
-      "Name" = "${local.name_prefix}-tg" # Tag for identification
-    }
-  )
-}
+#   tags = merge(local.default_tags,
+#     {
+#       "Name" = "${local.name_prefix}-tg" # Tag for identification
+#     }
+#   )
+# }
 
-# Create a Listener for the ALB (HTTP)
-resource "aws_lb_listener" "http_listener" {
-  load_balancer_arn = aws_lb.my_alb.arn
-  port              = 80
-  protocol          = "HTTP"
+# # Create a Listener for the ALB (HTTP)
+# resource "aws_lb_listener" "http_listener" {
+#   load_balancer_arn = aws_lb.my_alb.arn
+#   port              = 80
+#   protocol          = "HTTP"
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.my_target_group.arn
-  }
-}
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.my_target_group.arn
+#   }
+# }
