@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: web-app
-          image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:latest
+          image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_app
           ports:
             - containerPort: 80
