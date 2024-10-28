@@ -78,7 +78,13 @@ resource "aws_instance" "my_amazon" {
     sudo systemctl enable docker
     sudo systemctl start docker
     sudo usermod -aG docker ec2-user
-
+    
+    # Clone your repository and switch to dev branch
+    sudo yum install git -y
+    git clone https://github.com/armanlamba/clo-assignment-2.git
+    cd clo-assignment-2
+    git checkout dev
+    
     # Install kind
     curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
     chmod +x ./kind
