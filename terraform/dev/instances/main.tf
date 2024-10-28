@@ -63,6 +63,8 @@ resource "aws_instance" "my_amazon" {
     create_before_destroy = true
   }
 
+  iam_instance_profile = "LabInstanceProfile"
+  
   tags = merge(local.default_tags,
     {
       "Name" = "${local.name_prefix}-Amazon-Linux"
