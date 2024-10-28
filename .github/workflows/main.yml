@@ -51,7 +51,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: assignment2-dev-ecr
-        IMAGE_TAG: latest
+        IMAGE_TAG: v0.1
       run: |
         # Tag and push MySQL image to ECR
         docker tag my_db $ECR_REGISTRY/$ECR_REPOSITORY:my_db
