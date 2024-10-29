@@ -1,9 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
+  name: mysql-deployment
+  namespace: mysql
 spec:
-  replicas: 1 
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -12,20 +13,18 @@ spec:
       labels:
         app: mysql
     spec:
-      imagePullSecrets:
-      - name: ecr-secret
       containers:
       - name: mysql
-        image: 681863550751.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_db
+        image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_db
         ports:
         - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "pw"  
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
         - name: MYSQL_DATABASE
-          value: "employees"  
-        volumeMounts:
-        - name: mysql-storage
-          mountPath: /var/lib/mysql  
-      - name: mysql-storage
-        emptyDir: {}
+          value: "employees"
+      imagePullSecrets:
+        - name: ecr-secret

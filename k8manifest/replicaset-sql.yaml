@@ -1,19 +1,29 @@
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: web-app-replicaset
+  name: mysql-rs
+  namespace: mysql
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: employees
+      app: mysql
   template:
     metadata:
       labels:
-        app: employees
+        app: mysql
     spec:
       containers:
-        - name: web-app
-          image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_app
-          ports:
-            - containerPort: 80
+      - name: mysql
+        image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_db
+        ports:
+        - containerPort: 3306
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
+        - name: MYSQL_DATABASE
+          value: "employees"
+      imagePullSecrets:
+        - name: ecr-secret
