@@ -1,34 +1,27 @@
-apiVersion: apps/v1
-kind: ReplicaSet
+apiVersion: v1
+kind: Pod
 metadata:
-  name: web-app
+  name: webapp-pod
+  namespace: webapp
+  labels:
+    app: employees
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: employees
-  template:
-    metadata:
-      labels:
-        app: employees
-    spec:
-      imagePullSecrets:
-      - name: ecr-secret
-      containers:
-      - name: web-app
-        image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_app
-        ports:
-        - containerPort: 80  
-        env:
+  containers:
+    - name: webapp
+      image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_app
+      ports:
+        - containerPort: 8080
+      env:
         - name: DBHOST
-          value: "mysql" 
+          value: "mysql-service.mysql.svc.cluster.local"
         - name: DBPORT
-          value: "3306"  
+          value: "3306"
         - name: DBUSER
-          value: "root"  
+          value: "root"
         - name: DBPWD
-          value: "pw" 
-        - name: DATABASE
-          value: "employees" 
-        - name: APP_COLOR
-          value: "green"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
+  imagePullSecrets:
+    - name: ecr-secret
