@@ -1,27 +1,36 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
-  name: webapp-pod
-  namespace: webapp
+  name: webapp-rs  # Give your ReplicaSet a name
+  namespace: webapp  # Specify the namespace
   labels:
-    app: employees
+    app: employees  # Label for the ReplicaSet itself
 spec:
-  containers:
-    - name: webapp
-      image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_app
-      ports:
+  replicas: 3  # Number of desired replicas
+  selector:
+    matchLabels:
+      app: employees  # This selector must match the labels of the Pods it manages
+  template:
+    metadata:
+      labels:
+        app: employees  # Label applied to each Pod created by this ReplicaSet
+    spec:
+      containers:
+      - name: webapp
+        image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_app
+        ports:
         - containerPort: 8080
-      env:
+        env:
         - name: DBHOST
-          value: "mysql-service.mysql.svc.cluster.local"
+          value: "mysql-service.mysql.svc.cluster.local"  # The hostname for the MySQL service
         - name: DBPORT
-          value: "3306"
+          value: "3306"  # Port for the MySQL service
         - name: DBUSER
-          value: "root"
+          value: "root"  # Database user
         - name: DBPWD
           valueFrom:
             secretKeyRef:
-              name: mysql-secret
-              key: mysql-root-password
-  imagePullSecrets:
-    - name: ecr-secret
+              name: mysql-secret  # Reference to the secret containing the password
+              key: mysql-root-password  # Key in the secret
+      imagePullSecrets:
+        - name: ecr-secret  # Secret for pulling images from ECR
