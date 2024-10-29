@@ -26,4 +26,4 @@ spec:
         - name: MYSQL_DATABASE
           value: "employees"
       imagePullSecrets:
-        - name: ecr-secret
+        - name: ecr-secret-mysql

@@ -19,4 +19,4 @@ spec:
             key: mysql-root-password
       value: "employees"
   imagePullSecrets:
-    - name: ecr-secret
+    - name: ecr-secret-mysql
