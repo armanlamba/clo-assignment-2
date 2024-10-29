@@ -66,23 +66,12 @@ Ensure the following tools are installed:
 
 1. Create Docker registry secrets for each namespace:
     ```bash
-    kubectl create secret docker-registry ecr-secret \
-      --docker-server=289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr \
-      --docker-username=AWS \
-      --docker-password=$(aws ecr get-login-password --region us-east-1) \
-      --namespace=webapp
-
-    kubectl create secret docker-registry ecr-secret \
-      --docker-server=289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr \
-      --docker-username=AWS \
-      --docker-password=$(aws ecr get-login-password --region us-east-1) \
-      --namespace=mysql
+   add your secrets 
     ```
 
 2. Create MySQL-specific secrets:
     ```bash
-    kubectl create secret generic mysql-secret --from-literal=mysql-root-password=password123 -n webapp
-    kubectl create secret generic mysql-secret --from-literal=mysql-root-password=password123 -n mysql
+    add your secrets
     ```
 
 ## Application Deployment
