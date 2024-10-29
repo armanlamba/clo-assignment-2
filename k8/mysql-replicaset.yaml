@@ -3,27 +3,30 @@ kind: ReplicaSet
 metadata:
   name: mysql-rs
   namespace: mysql
+  labels:
+    app: mysql  # Adding a label for the ReplicaSet itself
 spec:
-  replicas: 1
+  replicas: 1  # Set to 1 replica (adjust as needed)
   selector:
     matchLabels:
-      app: mysql
+      app: mysql  # This selector must match the labels in the Pod template
   template:
     metadata:
       labels:
-        app: mysql
+        app: mysql  # Label applied to each Pod created by this ReplicaSet
     spec:
       containers:
       - name: mysql
         image: 289052325869.dkr.ecr.us-east-1.amazonaws.com/assignment2-dev-ecr:my_db
         ports:
         - containerPort: 3306
+        env:  # Environment variables should be defined here
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mysql-secret
               key: mysql-root-password
         - name: MYSQL_DATABASE
-          value: "employees"
+          value: "employees"  # Specify the default database to create
       imagePullSecrets:
-        - name: ecr-secret
+        - name: ecr-secret  # Ensure this is correctly set up to pull the image from ECR

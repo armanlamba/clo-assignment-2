@@ -15,8 +15,7 @@ spec:
     - name: MYSQL_ROOT_PASSWORD
       valueFrom:
         secretKeyRef:
-            name: mysql-secret
-            key: mysql-root-password
-      value: "employees"
+          name: mysql-secret
+          key: mysql-root-password
   imagePullSecrets:
     - name: ecr-secret
